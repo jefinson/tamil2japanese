@@ -4,7 +4,13 @@
     "slug": "tamil2japanese",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a0a2e"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -15,6 +21,7 @@
     "android": {
       "package": "com.jefin.tamil2japanese",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a0a2e"
       }
     },
@@ -22,6 +29,9 @@
       "eas": {
         "projectId": "ac1b8664-6263-4982-b1a2-e323aae28104"
       }
+    },
+    "autolinking": {
+      "exclude": ["react-native-screens"]
     }
   }
 }
