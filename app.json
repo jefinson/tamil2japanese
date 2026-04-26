@@ -5,7 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jefin.tamil2japanese"
@@ -14,6 +16,11 @@
       "package": "com.jefin.tamil2japanese",
       "adaptiveIcon": {
         "backgroundColor": "#1a0a2e"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ac1b8664-6263-4982-b1a2-e323aae28104"
       }
     }
   }
