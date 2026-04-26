@@ -11,9 +11,6 @@ import { colors, spacing, radius, fonts } from '../theme';
 const levelPath = [
   { num: '①', title: 'Hiragana', kana: 'あ', done: true },
   { num: '②', title: 'Katakana', kana: 'ア', done: true },
-  { num: '③', title: 'Kanji N5', kana: '漢', done: false },
-  { num: '④', title: 'Grammar', kana: '文法', done: false },
-  { num: '⑤', title: 'JLPT N5', kana: 'N5', done: false },
 ];
 
 const StatCard = ({ value, label, color }) => (

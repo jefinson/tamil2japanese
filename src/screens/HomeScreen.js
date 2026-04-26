@@ -5,10 +5,12 @@ import {
 } from 'react-native';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, fonts } from '../theme';
-import { categories } from '../data/vocabulary';
+import { categories, vocabulary } from '../data/vocabulary';
+import { hiraganaData } from '../data/hiragana';
+import { katakanaData } from '../data/katakana';
 
-const LessonCard = ({ icon, title, subtitle, badge, badgeColor, progress, onPress, locked }) => (
-  <TouchableOpacity style={[styles.lessonCard, locked && styles.lockedCard]} onPress={onPress} disabled={locked}>
+const LessonCard = ({ icon, title, subtitle, badge, badgeColor, progress, onPress }) => (
+  <TouchableOpacity style={styles.lessonCard} onPress={onPress}>
     <View style={styles.lessonIcon}>
       <Text style={styles.lessonIconText}>{icon}</Text>
     </View>
@@ -17,41 +19,45 @@ const LessonCard = ({ icon, title, subtitle, badge, badgeColor, progress, onPres
       <Text style={styles.lessonSubtitle}>{subtitle}</Text>
       {progress !== undefined && (
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: `${progress}%`, backgroundColor: locked ? colors.locked : colors.primary }]} />
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
         </View>
       )}
     </View>
-    <View>
-      {locked ? (
-        <Text style={styles.lockIcon}>🔒</Text>
-      ) : (
-        <Text style={[styles.badge, { color: badgeColor || colors.primary }]}>{badge}</Text>
-      )}
-    </View>
+    <Text style={[styles.badge, { color: badgeColor || colors.primary }]}>{badge}</Text>
   </TouchableOpacity>
 );
 
-const CategoryCard = ({ category, onPress }) => (
-  <TouchableOpacity style={styles.categoryCard} onPress={onPress}>
-    <Text style={styles.categoryEmoji}>{category.emoji}</Text>
-    <Text style={styles.categoryLabel}>{category.label}</Text>
-    <Text style={styles.categoryLabelJp}>{category.labelJp}</Text>
-  </TouchableOpacity>
-);
+const CategoryCard = ({ category, knownCount, totalCount, onPress }) => {
+  const pct = totalCount > 0 ? (knownCount / totalCount) * 100 : 0;
+  return (
+    <TouchableOpacity style={styles.categoryCard} onPress={onPress}>
+      <Text style={styles.categoryEmoji}>{category.emoji}</Text>
+      <Text style={styles.categoryLabel}>{category.label}</Text>
+      <Text style={styles.categoryLabelJp}>{category.labelJp}</Text>
+      <View style={styles.catProgressBar}>
+        <View style={[styles.catProgressFill, { width: `${pct}%` }]} />
+      </View>
+      <Text style={styles.catCount}>{knownCount}/{totalCount}</Text>
+    </TouchableOpacity>
+  );
+};
 
 export default function HomeScreen({ navigation }) {
-  const { streak, direction } = useApp();
+  const { direction, learnedHiragana, learnedKatakana, getKnownCount } = useApp();
 
   const directionLabel = direction === 'tamil-to-japanese'
     ? 'தமிழ் → 日本語'
     : '日本語 → தமிழ்';
+
+  const hiraganaProgress = Math.round((learnedHiragana.size / hiraganaData.length) * 100);
+  const katakanaProgress = Math.round((learnedKatakana.size / katakanaData.length) * 100);
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="light-content" backgroundColor={colors.darkBg} />
       <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* ── Dark Header ── */}
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
@@ -66,61 +72,47 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.dirBadgeText}>{directionLabel}</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Streak */}
-          <View style={styles.streakRow}>
-            {streak.days.map((day, i) => (
-              <View key={i} style={[styles.streakDot, streak.completed[i] && styles.streakDotActive]}>
-                <Text style={[styles.streakDay, streak.completed[i] && styles.streakDayActive]}>{day}</Text>
-              </View>
-            ))}
-            <Text style={styles.streakCount}>{streak.count} day{'\n'}streak 🔥</Text>
-          </View>
         </View>
 
-        {/* ── Continuing Lessons ── */}
+        {/* Scripts */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>தொடரும் பாடங்கள்</Text>
-
+          <Text style={styles.sectionTitle}>எழுத்துக்கள் · Scripts</Text>
           <LessonCard
-            icon="あ" title="Hiragana Basics" subtitle="ஹிரகானா அடிப்படை"
-            badge="続ける" badgeColor={colors.primary} progress={35}
+            icon="あ" title="Hiragana" subtitle="ஹிரகானா அடிப்படை"
+            badge={`${learnedHiragana.size}/${hiraganaData.length}`}
+            badgeColor={colors.primary}
+            progress={hiraganaProgress}
             onPress={() => navigation.navigate('HiraganaGrid')}
           />
           <LessonCard
             icon="ア" title="Katakana" subtitle="கட்டகானா"
-            badge="New" badgeColor={colors.accent} progress={0}
+            badge={`${learnedKatakana.size}/${katakanaData.length}`}
+            badgeColor={colors.accent}
+            progress={katakanaProgress}
             onPress={() => navigation.navigate('KatakanaGrid')}
           />
           <LessonCard
-            icon="漢" title="Kanji: N5 Level" subtitle="கன்ஜி: N5 நிலை"
-            locked
-            onPress={() => {}}
+            icon="文" title="Grammar" subtitle="இலக்கண விதிகள்"
+            badge="18 topics"
+            badgeColor="#A0793F"
+            onPress={() => navigation.navigate('Grammar')}
           />
         </View>
 
-        {/* ── Vocabulary Categories ── */}
+        {/* Vocabulary Categories — 2-column grid */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>வார்த்தை வகைகள்</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+          <View style={styles.categoryGrid}>
             {categories.map(cat => (
               <CategoryCard
                 key={cat.id}
                 category={cat}
+                knownCount={getKnownCount(cat.id)}
+                totalCount={(vocabulary[cat.id] || []).length}
                 onPress={() => navigation.navigate('Flashcard', { categoryId: cat.id })}
               />
             ))}
-          </ScrollView>
-        </View>
-
-        {/* ── Pronunciation ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>உச்சரிப்பு வழிகாட்டி</Text>
-          <LessonCard
-            icon="🔊" title="Pitch Accent" subtitle="குரல் ஏற்றம்"
-            badge="Listen" badgeColor={colors.primaryLight} progress={20}
-            onPress={() => {}}
-          />
+          </View>
         </View>
 
         <View style={{ height: 20 }} />
@@ -132,7 +124,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.darkBg },
 
-  // Header
   header: {
     backgroundColor: colors.darkBg,
     paddingHorizontal: spacing.base,
@@ -156,19 +147,6 @@ const styles = StyleSheet.create({
   },
   dirBadgeText: { color: colors.primaryLight, fontSize: fonts.sizes.xs },
 
-  // Streak
-  streakRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.lg, gap: 6 },
-  streakDot: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: colors.streakInactive,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  streakDotActive: { backgroundColor: colors.streakActive },
-  streakDay: { color: colors.textMuted, fontSize: fonts.sizes.sm, fontWeight: '600' },
-  streakDayActive: { color: colors.textLight },
-  streakCount: { color: colors.textMuted, fontSize: fonts.sizes.xs, marginLeft: 8, textAlign: 'center' },
-
-  // Sections
   section: {
     backgroundColor: colors.lightBg,
     marginTop: 8,
@@ -184,7 +162,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
 
-  // Lesson card
   lessonCard: {
     backgroundColor: colors.cardBg,
     borderRadius: radius.lg,
@@ -198,7 +175,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
-  lockedCard: { opacity: 0.6 },
   lessonIcon: {
     width: 48, height: 48, borderRadius: radius.md,
     backgroundColor: colors.primaryBg,
@@ -213,19 +189,21 @@ const styles = StyleSheet.create({
     height: 4, backgroundColor: colors.border,
     borderRadius: 2, marginTop: 8, overflow: 'hidden',
   },
-  progressFill: { height: '100%', borderRadius: 2 },
+  progressFill: { height: '100%', borderRadius: 2, backgroundColor: colors.primary },
   badge: { fontSize: fonts.sizes.sm, fontWeight: '600' },
-  lockIcon: { fontSize: fonts.sizes.lg },
 
-  // Category cards
-  categoryScroll: { marginTop: 4 },
+  // 2-column grid
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
   categoryCard: {
     backgroundColor: colors.cardBg,
     borderRadius: radius.lg,
     padding: spacing.md,
-    marginRight: spacing.sm,
     alignItems: 'center',
-    minWidth: 90,
+    width: '48%',
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
@@ -233,6 +211,12 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   categoryEmoji: { fontSize: 28, marginBottom: 6 },
-  categoryLabel: { fontSize: fonts.sizes.xs, color: colors.textPrimary, fontWeight: '600', textAlign: 'center' },
+  categoryLabel: { fontSize: fonts.sizes.sm, color: colors.textPrimary, fontWeight: '600', textAlign: 'center' },
   categoryLabelJp: { fontSize: fonts.sizes.xs, color: colors.textSecondary, marginTop: 2 },
+  catProgressBar: {
+    width: '80%', height: 4, backgroundColor: colors.border,
+    borderRadius: 2, marginTop: 8, overflow: 'hidden',
+  },
+  catProgressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 2 },
+  catCount: { fontSize: 10, color: colors.textMuted, marginTop: 4 },
 });

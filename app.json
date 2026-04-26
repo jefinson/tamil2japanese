@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -29,9 +30,6 @@
       "eas": {
         "projectId": "ac1b8664-6263-4982-b1a2-e323aae28104"
       }
-    },
-    "autolinking": {
-      "exclude": ["react-native-screens"]
     }
   }
 }

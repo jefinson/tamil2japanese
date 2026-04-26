@@ -20,8 +20,14 @@ const OptionRow = ({ label, sublabel, right }) => (
   </View>
 );
 
+const APP_LANGUAGES = [
+  { id: 'tamil',    label: 'தமிழ்',   flag: '🇮🇳' },
+  { id: 'english',  label: 'English',  flag: '🇬🇧' },
+  { id: 'japanese', label: '日本語',   flag: '🇯🇵' },
+];
+
 export default function SettingsScreen() {
-  const { direction, setDirectionValue } = useApp();
+  const { direction, setDirectionValue, appLanguage, setAppLanguage } = useApp();
 
   const isTamilToJp = direction === 'tamil-to-japanese';
 
@@ -67,6 +73,25 @@ export default function SettingsScreen() {
             <Text style={styles.activeText}>
               தற்போது: {isTamilToJp ? 'தமிழிலிருந்து ஜப்பானிய மொழி' : 'ஜப்பானியத்திலிருந்து தமிழ்'}
             </Text>
+          </View>
+        </View>
+
+        {/* App Language */}
+        <SectionHeader title="பயன்பாட்டு மொழி · App Language" />
+        <View style={styles.card}>
+          <View style={styles.langRow}>
+            {APP_LANGUAGES.map(lang => (
+              <TouchableOpacity
+                key={lang.id}
+                style={[styles.langOption, appLanguage === lang.id && styles.langOptionActive]}
+                onPress={() => setAppLanguage(lang.id)}
+              >
+                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <Text style={[styles.langLabel, appLanguage === lang.id && styles.langLabelActive]}>
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -151,6 +176,17 @@ const styles = StyleSheet.create({
     marginTop: spacing.xxl, alignItems: 'center', paddingVertical: spacing.lg,
   },
   aboutTitle: { fontSize: fonts.sizes.lg, fontWeight: '800', color: colors.textPrimary },
+  langRow: { flexDirection: 'row', gap: spacing.sm },
+  langOption: {
+    flex: 1, alignItems: 'center', paddingVertical: spacing.md,
+    borderRadius: radius.md, borderWidth: 2, borderColor: colors.border,
+    backgroundColor: colors.lightBg,
+  },
+  langOptionActive: { borderColor: colors.primary, backgroundColor: colors.primaryBg },
+  langFlag: { fontSize: 24, marginBottom: 4 },
+  langLabel: { fontSize: fonts.sizes.xs, color: colors.textSecondary, fontWeight: '600' },
+  langLabelActive: { color: colors.primary },
+
   aboutText: {
     fontSize: fonts.sizes.sm, color: colors.textSecondary,
     textAlign: 'center', marginTop: spacing.sm, lineHeight: 20,

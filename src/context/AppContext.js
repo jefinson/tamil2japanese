@@ -7,6 +7,10 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   // 'tamil-to-japanese' | 'japanese-to-tamil'
   const [direction, setDirection] = useState('tamil-to-japanese');
+  // 'tamil' | 'english' | 'japanese'
+  const [appLanguage, setAppLanguageState] = useState('tamil');
+  // cardProgress: { [categoryId]: { [cardIndex]: 'known' | 'unknown' } }
+  const [cardProgress, setCardProgress] = useState({});
   const [learnedHiragana, setLearnedHiragana] = useState(new Set(initialLearned));
   const [learnedKatakana, setLearnedKatakana] = useState(new Set());
 
@@ -31,11 +35,17 @@ export const AppProvider = ({ children }) => {
         const savedDirection = await AsyncStorage.getItem('direction');
         if (savedDirection) setDirection(savedDirection);
 
+        const savedLang = await AsyncStorage.getItem('appLanguage');
+        if (savedLang) setAppLanguageState(savedLang);
+
         const savedHiragana = await AsyncStorage.getItem('learnedHiragana');
         if (savedHiragana) setLearnedHiragana(new Set(JSON.parse(savedHiragana)));
 
         const savedKatakana = await AsyncStorage.getItem('learnedKatakana');
         if (savedKatakana) setLearnedKatakana(new Set(JSON.parse(savedKatakana)));
+
+        const savedCardProgress = await AsyncStorage.getItem('cardProgress');
+        if (savedCardProgress) setCardProgress(JSON.parse(savedCardProgress));
       } catch (e) {
         console.log('Failed to load settings:', e);
       }
@@ -54,6 +64,11 @@ export const AppProvider = ({ children }) => {
     await AsyncStorage.setItem('direction', val);
   };
 
+  const setAppLanguage = async (lang) => {
+    setAppLanguageState(lang);
+    await AsyncStorage.setItem('appLanguage', lang);
+  };
+
   const markHiraganaLearned = async (kana) => {
     const updated = new Set([...learnedHiragana, kana]);
     setLearnedHiragana(updated);
@@ -64,6 +79,20 @@ export const AppProvider = ({ children }) => {
     const updated = new Set([...learnedKatakana, kana]);
     setLearnedKatakana(updated);
     await AsyncStorage.setItem('learnedKatakana', JSON.stringify([...updated]));
+  };
+
+  const markCard = async (categoryId, cardIndex, status) => {
+    const updated = {
+      ...cardProgress,
+      [categoryId]: { ...(cardProgress[categoryId] || {}), [cardIndex]: status },
+    };
+    setCardProgress(updated);
+    await AsyncStorage.setItem('cardProgress', JSON.stringify(updated));
+  };
+
+  const getKnownCount = (categoryId) => {
+    const cat = cardProgress[categoryId] || {};
+    return Object.values(cat).filter(v => v === 'known').length;
   };
 
   const addCardReview = (correct) => {
@@ -81,6 +110,11 @@ export const AppProvider = ({ children }) => {
       direction,
       toggleDirection,
       setDirectionValue,
+      appLanguage,
+      setAppLanguage,
+      cardProgress,
+      markCard,
+      getKnownCount,
       learnedHiragana,
       learnedKatakana,
       markHiraganaLearned,
