@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Tamil2Japanese",
+    "slug": "tamil2japanese",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jefin.tamil2japanese"
+    },
+    "android": {
+      "package": "com.jefin.tamil2japanese",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a0a2e"
+      }
+    }
+  }
+}
