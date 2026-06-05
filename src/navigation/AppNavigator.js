@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
 import FlashcardScreen from '../screens/FlashcardScreen';
@@ -12,25 +13,18 @@ import GrammarScreen from '../screens/GrammarScreen';
 import GrammarDetailScreen from '../screens/GrammarDetailScreen';
 
 import { colors, fonts, spacing } from '../theme';
+import { useApp } from '../context/AppContext';
 
 const TABS = [
-  { name: 'Home',     emoji: '🏠', label: 'Home',   tamilLabel: 'முகப்பு' },
-  { name: 'Practice', emoji: '📇', label: 'Practice', tamilLabel: 'பயிற்சி' },
-  { name: 'Progress', emoji: '📊', label: 'Progress', tamilLabel: 'நிலை' },
-  { name: 'Settings', emoji: '⚙️', label: 'Settings', tamilLabel: 'அமைப்பு' },
+  { name: 'Home',     icon: 'home',             iconActive: 'home',        tKey: 'tab_home' },
+  { name: 'Practice', icon: 'layers-outline',   iconActive: 'layers',      tKey: 'tab_practice' },
+  { name: 'Progress', icon: 'bar-chart-outline', iconActive: 'bar-chart',  tKey: 'tab_progress' },
+  { name: 'Settings', icon: 'settings-outline', iconActive: 'settings',    tKey: 'tab_settings' },
 ];
 
-const HEADER_TITLES = {
-  HiraganaGrid:   'ஹிரகானா · Hiragana',
-  KatakanaGrid:   'கட்டகானா · Katakana',
-  Flashcard:      'பயிற்சி · Practice',
-  Settings:       'அமைப்புகள் · Settings',
-  Grammar:        'இலக்கணம் · Grammar',
-  GrammarDetail:  'இலக்கணம் · Grammar',
-};
-
 // Pure JS stack navigator — no native modules
-function SimpleStack({ initialScreen, onNavigate: externalNavigate }) {
+function SimpleStack({ initialScreen }) {
+  const { t } = useApp();
   const [stack, setStack] = useState([{ name: initialScreen }]);
 
   const navigate = useCallback((name, params) => {
@@ -44,12 +38,17 @@ function SimpleStack({ initialScreen, onNavigate: externalNavigate }) {
   const current = stack[stack.length - 1];
   const canGoBack = stack.length > 1;
 
-  const navigation = {
-    navigate,
-    goBack,
-    getParent: () => null,
-  };
+  const navigation = { navigate, goBack, getParent: () => null };
   const route = { params: current.params || {}, name: current.name };
+
+  const HEADER_TITLES = {
+    HiraganaGrid:  t.header_hiragana,
+    KatakanaGrid:  t.header_katakana,
+    Flashcard:     t.header_flashcard,
+    Settings:      t.settings_title,
+    Grammar:       t.header_grammar,
+    GrammarDetail: t.header_grammar,
+  };
 
   const renderScreen = () => {
     switch (current.name) {
@@ -57,10 +56,10 @@ function SimpleStack({ initialScreen, onNavigate: externalNavigate }) {
       case 'HiraganaGrid': return <HiraganaGridScreen navigation={navigation} route={route} />;
       case 'KatakanaGrid': return <KatakanaGridScreen navigation={navigation} route={route} />;
       case 'Flashcard':    return <FlashcardScreen navigation={navigation} route={route} />;
-      case 'WordList':       return <WordListScreen navigation={navigation} route={route} />;
-      case 'Grammar':        return <GrammarScreen navigation={navigation} route={route} />;
-      case 'GrammarDetail':  return <GrammarDetailScreen navigation={navigation} route={route} />;
-      case 'Progress':       return <ProgressScreen navigation={navigation} route={route} />;
+      case 'WordList':     return <WordListScreen navigation={navigation} route={route} />;
+      case 'Grammar':      return <GrammarScreen navigation={navigation} route={route} />;
+      case 'GrammarDetail': return <GrammarDetailScreen navigation={navigation} route={route} />;
+      case 'Progress':     return <ProgressScreen navigation={navigation} route={route} />;
       case 'Settings':     return <SettingsScreen navigation={navigation} route={route} />;
       default:             return <HomeScreen navigation={navigation} route={route} />;
     }
@@ -71,7 +70,7 @@ function SimpleStack({ initialScreen, onNavigate: externalNavigate }) {
       {canGoBack && (
         <SafeAreaView style={styles.header}>
           <TouchableOpacity onPress={goBack} style={styles.backBtn}>
-            <Text style={styles.backArrow}>←</Text>
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {HEADER_TITLES[current.name] || current.name}
@@ -86,9 +85,9 @@ function SimpleStack({ initialScreen, onNavigate: externalNavigate }) {
   );
 }
 
-// Custom pure-JS bottom tab bar — no @react-navigation/bottom-tabs
 export default function AppNavigator() {
   const [activeTab, setActiveTab] = useState('Home');
+  const { t } = useApp();
 
   const renderTab = (tab) => {
     const focused = activeTab === tab.name;
@@ -99,9 +98,13 @@ export default function AppNavigator() {
         onPress={() => setActiveTab(tab.name)}
         activeOpacity={0.7}
       >
-        <Text style={styles.tabEmoji}>{tab.emoji}</Text>
+        <Ionicons
+          name={focused ? tab.iconActive : tab.icon}
+          size={22}
+          color={focused ? colors.primary : colors.textMuted}
+        />
         <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>
-          {tab.tamilLabel}
+          {t[tab.tKey]}
         </Text>
         {focused && <View style={styles.tabIndicator} />}
       </TouchableOpacity>
@@ -111,7 +114,6 @@ export default function AppNavigator() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1 }}>
-        {/* All stacks rendered at once — only the active one is visible */}
         <View style={{ flex: 1, display: activeTab === 'Home' ? 'flex' : 'none' }}>
           <SimpleStack initialScreen="HomeMain" />
         </View>
@@ -133,10 +135,7 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -147,7 +146,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   backBtn: { width: 44, alignItems: 'center', justifyContent: 'center' },
-  backArrow: { fontSize: 24, color: colors.primary, fontWeight: '600' },
   headerTitle: {
     flex: 1,
     textAlign: 'center',
@@ -170,16 +168,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  tabEmoji: { fontSize: 20 },
-  tabLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  tabLabelActive: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
+  tabLabel: { fontSize: fonts.sizes.xs, color: colors.textMuted, marginTop: 2 },
+  tabLabelActive: { color: colors.primary, fontWeight: '700' },
   tabIndicator: {
     position: 'absolute',
     top: 0,

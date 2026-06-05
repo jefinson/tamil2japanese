@@ -4,6 +4,7 @@ import {
   StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
 import * as Speech from 'expo-speech';
+import { Ionicons } from '@expo/vector-icons';
 import { grammarCategories } from '../data/grammar';
 import { colors, spacing, radius, fonts } from '../theme';
 
@@ -43,13 +44,15 @@ const ExampleCard = ({ example, index }) => {
             style={styles.speakBtn}
             onPress={() => speakText(example.japanese, 'japanese')}
           >
-            <Text style={styles.speakBtnText}>♪ 日</Text>
+            <Ionicons name="volume-medium-outline" size={12} color={colors.primaryLight} />
+            <Text style={styles.speakBtnText}>日</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.speakBtn, styles.speakBtnTa]}
             onPress={() => speakText(example.tamil, 'tamil')}
           >
-            <Text style={[styles.speakBtnText, styles.speakBtnTextTa]}>♪ த</Text>
+            <Ionicons name="volume-medium-outline" size={12} color={colors.primary} />
+            <Text style={[styles.speakBtnText, styles.speakBtnTextTa]}>த</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -103,7 +106,7 @@ export default function GrammarDetailScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primaryLight} />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>{category.label} · {category.labelEn}</Text>
@@ -264,6 +267,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.darkBg,
     borderWidth: 1,
     borderColor: colors.primaryLight + '50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   speakBtnTa: {
     backgroundColor: colors.primaryBg,

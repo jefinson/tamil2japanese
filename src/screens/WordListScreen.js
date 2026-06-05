@@ -4,6 +4,7 @@ import {
   StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
 import * as Speech from 'expo-speech';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { vocabulary, categories } from '../data/vocabulary';
 import { colors, spacing, radius, fonts } from '../theme';
@@ -44,7 +45,7 @@ export default function WordListScreen({ route, navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>←</Text>
+          <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <View style={styles.headerText}>
           <Text style={styles.headerTitle}>{category?.label}</Text>
@@ -76,11 +77,11 @@ export default function WordListScreen({ route, navigation }) {
               {/* Speaker buttons */}
               <View style={styles.speakerCol}>
                 <TouchableOpacity style={styles.speakerBtn} onPress={() => speakWord(card.tamil, 'tamil')}>
-                  <Text style={styles.speakerText}>♪</Text>
+                  <Ionicons name="volume-medium-outline" size={14} color={colors.primary} />
                   <Text style={styles.speakerLang}>த</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.speakerBtn, styles.speakerBtnJp]} onPress={() => speakWord(card.japanese, 'japanese')}>
-                  <Text style={styles.speakerTextJp}>♪</Text>
+                  <Ionicons name="volume-medium-outline" size={14} color={colors.primaryLight} />
                   <Text style={styles.speakerLangJp}>日</Text>
                 </TouchableOpacity>
               </View>

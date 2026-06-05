@@ -1,33 +1,20 @@
 import React from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  SafeAreaView, StatusBar, Switch,
+  SafeAreaView, StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, fonts } from '../theme';
 
-const SectionHeader = ({ title }) => (
-  <Text style={styles.sectionHeader}>{title}</Text>
-);
-
-const OptionRow = ({ label, sublabel, right }) => (
-  <View style={styles.optionRow}>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.optionLabel}>{label}</Text>
-      {sublabel && <Text style={styles.optionSublabel}>{sublabel}</Text>}
-    </View>
-    {right}
-  </View>
-);
-
 const APP_LANGUAGES = [
-  { id: 'tamil',    label: 'தமிழ்',   flag: '🇮🇳' },
-  { id: 'english',  label: 'English',  flag: '🇬🇧' },
-  { id: 'japanese', label: '日本語',   flag: '🇯🇵' },
+  { id: 'tamil',    char: 'அ',  charColor: '#E57373' },
+  { id: 'english',  char: 'Aa', charColor: '#4FC3F7' },
+  { id: 'japanese', char: 'あ', charColor: colors.primary },
 ];
 
 export default function SettingsScreen() {
-  const { direction, setDirectionValue, appLanguage, setAppLanguage } = useApp();
+  const { direction, setDirectionValue, appLanguage, setAppLanguage, t } = useApp();
 
   const isTamilToJp = direction === 'tamil-to-japanese';
 
@@ -36,25 +23,29 @@ export default function SettingsScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={colors.lightBg} />
 
       <View style={styles.titleRow}>
-        <Text style={styles.pageTitle}>அமைப்புகள்</Text>
-        <Text style={styles.pageTitleSub}>Settings</Text>
+        <Text style={styles.pageTitle}>{t.settings_title}</Text>
+        <Text style={styles.pageTitleSub}>{t.settings_sub}</Text>
       </View>
 
       <View style={styles.content}>
 
         {/* Direction */}
-        <SectionHeader title="கற்றல் திசை · Learning Direction" />
+        <Text style={styles.sectionHeader}>{t.section_direction}</Text>
         <View style={styles.card}>
-          <Text style={styles.dirLabel}>தமிழ் → 日本語</Text>
-          <Text style={styles.dirDesc}>Learn Japanese from Tamil</Text>
+          <Text style={styles.dirLabel}>{t.dir_heading}</Text>
+          <Text style={styles.dirDesc}>{t.dir_desc}</Text>
           <View style={styles.dirToggleRow}>
             <TouchableOpacity
               style={[styles.dirOption, isTamilToJp && styles.dirOptionActive]}
               onPress={() => setDirectionValue('tamil-to-japanese')}
             >
-              <Text style={styles.dirFlagRow}>🇮🇳 → 🇯🇵</Text>
+              <View style={styles.dirIconRow}>
+                <Text style={[styles.dirChar, { color: isTamilToJp ? '#E57373' : colors.textMuted }]}>அ</Text>
+                <Ionicons name="arrow-forward-outline" size={13} color={isTamilToJp ? colors.primary : colors.textMuted} />
+                <Text style={[styles.dirChar, { color: isTamilToJp ? colors.primary : colors.textMuted }]}>あ</Text>
+              </View>
               <Text style={[styles.dirOptionLabel, isTamilToJp && styles.dirOptionLabelActive]}>
-                தமிழ் → Japanese
+                {t.dir_ta_to_jp}
               </Text>
             </TouchableOpacity>
 
@@ -62,22 +53,26 @@ export default function SettingsScreen() {
               style={[styles.dirOption, !isTamilToJp && styles.dirOptionActive]}
               onPress={() => setDirectionValue('japanese-to-tamil')}
             >
-              <Text style={styles.dirFlagRow}>🇯🇵 → 🇮🇳</Text>
+              <View style={styles.dirIconRow}>
+                <Text style={[styles.dirChar, { color: !isTamilToJp ? colors.primary : colors.textMuted }]}>あ</Text>
+                <Ionicons name="arrow-forward-outline" size={13} color={!isTamilToJp ? colors.primary : colors.textMuted} />
+                <Text style={[styles.dirChar, { color: !isTamilToJp ? '#E57373' : colors.textMuted }]}>அ</Text>
+              </View>
               <Text style={[styles.dirOptionLabel, !isTamilToJp && styles.dirOptionLabelActive]}>
-                Japanese → தமிழ்
+                {t.dir_jp_to_ta}
               </Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.activeIndicator}>
             <Text style={styles.activeText}>
-              தற்போது: {isTamilToJp ? 'தமிழிலிருந்து ஜப்பானிய மொழி' : 'ஜப்பானியத்திலிருந்து தமிழ்'}
+              {t.dir_currently} {isTamilToJp ? t.dir_current_ta_jp : t.dir_current_jp_ta}
             </Text>
           </View>
         </View>
 
         {/* App Language */}
-        <SectionHeader title="பயன்பாட்டு மொழி · App Language" />
+        <Text style={styles.sectionHeader}>{t.section_lang}</Text>
         <View style={styles.card}>
           <View style={styles.langRow}>
             {APP_LANGUAGES.map(lang => (
@@ -86,9 +81,11 @@ export default function SettingsScreen() {
                 style={[styles.langOption, appLanguage === lang.id && styles.langOptionActive]}
                 onPress={() => setAppLanguage(lang.id)}
               >
-                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <Text style={[styles.langChar, { color: appLanguage === lang.id ? lang.charColor : colors.textMuted }]}>
+                  {lang.char}
+                </Text>
                 <Text style={[styles.langLabel, appLanguage === lang.id && styles.langLabelActive]}>
-                  {lang.label}
+                  {t[`lang_${lang.id}`]}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -96,26 +93,41 @@ export default function SettingsScreen() {
         </View>
 
         {/* App info */}
-        <SectionHeader title="பயன்பாடு · App" />
+        <Text style={styles.sectionHeader}>{t.section_app}</Text>
         <View style={styles.card}>
-          <OptionRow label="பதிப்பு · Version" sublabel="Tamil2Japanese" right={<Text style={styles.optionValue}>1.0.0</Text>} />
+          <View style={styles.optionRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionLabel}>{t.version_label}</Text>
+              <Text style={styles.optionSublabel}>Tamil2Japanese</Text>
+            </View>
+            <Text style={styles.optionValue}>1.0.0</Text>
+          </View>
           <View style={styles.divider} />
-          <OptionRow label="மொழி · App Language" sublabel="Interface language" right={<Text style={styles.optionValue}>தமிழ்</Text>} />
+          <View style={styles.optionRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionLabel}>{t.applang_label}</Text>
+              <Text style={styles.optionSublabel}>{t.applang_sub}</Text>
+            </View>
+            <Text style={styles.optionValue}>
+              {appLanguage === 'tamil' ? 'தமிழ்' : appLanguage === 'english' ? 'English' : '日本語'}
+            </Text>
+          </View>
           <View style={styles.divider} />
-          <OptionRow label="தரவு அழிக்கவும் · Reset Progress" sublabel="Clear all learned characters" right={
+          <View style={styles.optionRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionLabel}>{t.reset_label}</Text>
+              <Text style={styles.optionSublabel}>{t.reset_sub}</Text>
+            </View>
             <TouchableOpacity>
-              <Text style={styles.dangerText}>அழிக்கவும்</Text>
+              <Text style={styles.dangerText}>{t.reset_btn}</Text>
             </TouchableOpacity>
-          } />
+          </View>
         </View>
 
         {/* About */}
         <View style={styles.aboutBox}>
-          <Text style={styles.aboutTitle}>Tamil2Japanese 🎌</Text>
-          <Text style={styles.aboutText}>
-            தமிழ் மக்களுக்காக ஜப்பானிய மொழி கற்கும் பயன்பாடு.{'\n'}
-            Learn Japanese the Tamil way.
-          </Text>
+          <Text style={styles.aboutTitle}>Tamil2Japanese</Text>
+          <Text style={styles.aboutText}>{t.about_text}</Text>
         </View>
 
       </View>
@@ -154,7 +166,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightBg,
   },
   dirOptionActive: { borderColor: colors.primary, backgroundColor: colors.primaryBg },
-  dirFlagRow: { fontSize: 24, marginBottom: 4 },
+  dirIconRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
+  dirChar: { fontSize: 20, fontWeight: '700' },
   dirOptionLabel: { fontSize: fonts.sizes.xs, color: colors.textSecondary, fontWeight: '600', textAlign: 'center' },
   dirOptionLabelActive: { color: colors.primary },
   activeIndicator: {
@@ -163,19 +176,13 @@ const styles = StyleSheet.create({
   },
   activeText: { fontSize: fonts.sizes.xs, color: colors.primary, fontWeight: '600' },
 
-  optionRow: {
-    flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm,
-  },
+  optionRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
   optionLabel: { fontSize: fonts.sizes.sm, fontWeight: '600', color: colors.textPrimary },
   optionSublabel: { fontSize: fonts.sizes.xs, color: colors.textSecondary, marginTop: 2 },
   optionValue: { fontSize: fonts.sizes.sm, color: colors.textSecondary },
   dangerText: { color: '#E53935', fontSize: fonts.sizes.sm, fontWeight: '600' },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: 2 },
 
-  aboutBox: {
-    marginTop: spacing.xxl, alignItems: 'center', paddingVertical: spacing.lg,
-  },
-  aboutTitle: { fontSize: fonts.sizes.lg, fontWeight: '800', color: colors.textPrimary },
   langRow: { flexDirection: 'row', gap: spacing.sm },
   langOption: {
     flex: 1, alignItems: 'center', paddingVertical: spacing.md,
@@ -183,10 +190,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightBg,
   },
   langOptionActive: { borderColor: colors.primary, backgroundColor: colors.primaryBg },
-  langFlag: { fontSize: 24, marginBottom: 4 },
+  langChar: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
   langLabel: { fontSize: fonts.sizes.xs, color: colors.textSecondary, fontWeight: '600' },
   langLabelActive: { color: colors.primary },
 
+  aboutBox: { marginTop: spacing.xxl, alignItems: 'center', paddingVertical: spacing.lg },
+  aboutTitle: { fontSize: fonts.sizes.lg, fontWeight: '800', color: colors.textPrimary },
   aboutText: {
     fontSize: fonts.sizes.sm, color: colors.textSecondary,
     textAlign: 'center', marginTop: spacing.sm, lineHeight: 20,

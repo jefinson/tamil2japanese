@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initialLearned } from '../data/hiragana';
+import { getTranslations } from '../data/translations';
 
 const AppContext = createContext();
 
@@ -14,15 +16,19 @@ export const AppProvider = ({ children }) => {
   const [learnedHiragana, setLearnedHiragana] = useState(new Set(initialLearned));
   const [learnedKatakana, setLearnedKatakana] = useState(new Set());
 
-  // Daily stats
+  // Stats — cardsReviewed and accuracy are session-based; timeSpent is cumulative (minutes)
   const [stats, setStats] = useState({
-    cardsReviewed: 42,
-    accuracy: 86,
-    timeSpent: 12, // minutes
+    cardsReviewed: 0,
+    accuracy: 0,
+    timeSpent: 0,
   });
 
+  // For accurate time tracking
+  const appStateRef = useRef(AppState.currentState);
+  const sessionStartRef = useRef(Date.now());
+
   // Streak data
-  const [streak, setStreak] = useState({
+  const [streak] = useState({
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
     completed: [true, true, true, true, false, false, false],
     count: 3,
@@ -46,11 +52,39 @@ export const AppProvider = ({ children }) => {
 
         const savedCardProgress = await AsyncStorage.getItem('cardProgress');
         if (savedCardProgress) setCardProgress(JSON.parse(savedCardProgress));
+
+        // Load saved cumulative time
+        const savedTime = await AsyncStorage.getItem('timeSpentMinutes');
+        if (savedTime) {
+          setStats(prev => ({ ...prev, timeSpent: parseInt(savedTime, 10) }));
+        }
       } catch (e) {
         console.log('Failed to load settings:', e);
       }
     };
     loadSettings();
+
+    // Track time spent: record when app goes background/foreground
+    sessionStartRef.current = Date.now();
+    const subscription = AppState.addEventListener('change', async (nextState) => {
+      if (appStateRef.current === 'active' && nextState.match(/inactive|background/)) {
+        // App going to background — save elapsed time
+        const elapsed = Math.floor((Date.now() - sessionStartRef.current) / 60000);
+        if (elapsed > 0) {
+          setStats(prev => {
+            const newTime = prev.timeSpent + elapsed;
+            AsyncStorage.setItem('timeSpentMinutes', String(newTime));
+            return { ...prev, timeSpent: newTime };
+          });
+        }
+      } else if (nextState === 'active') {
+        // App coming to foreground — restart session timer
+        sessionStartRef.current = Date.now();
+      }
+      appStateRef.current = nextState;
+    });
+
+    return () => subscription.remove();
   }, []);
 
   const toggleDirection = async () => {
@@ -96,14 +130,23 @@ export const AppProvider = ({ children }) => {
   };
 
   const addCardReview = (correct) => {
-    setStats(prev => ({
-      cardsReviewed: prev.cardsReviewed + 1,
-      accuracy: Math.round(
-        (prev.accuracy * prev.cardsReviewed + (correct ? 100 : 0)) / (prev.cardsReviewed + 1)
-      ),
-      timeSpent: prev.timeSpent,
-    }));
+    const elapsedNow = Math.floor((Date.now() - sessionStartRef.current) / 60000);
+    setStats(prev => {
+      const newReviewed = prev.cardsReviewed + 1;
+      const newAccuracy = Math.round(
+        (prev.accuracy * prev.cardsReviewed + (correct ? 100 : 0)) / newReviewed
+      );
+      return {
+        cardsReviewed: newReviewed,
+        accuracy: newAccuracy,
+        timeSpent: prev.timeSpent + elapsedNow,
+      };
+    });
+    // Reset session timer after each card so elapsed doesn't double-count
+    sessionStartRef.current = Date.now();
   };
+
+  const t = getTranslations(appLanguage);
 
   return (
     <AppContext.Provider value={{
@@ -122,6 +165,7 @@ export const AppProvider = ({ children }) => {
       stats,
       streak,
       addCardReview,
+      t,
     }}>
       {children}
     </AppContext.Provider>

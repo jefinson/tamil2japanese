@@ -3,16 +3,43 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, SafeAreaView, StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { colors, spacing, radius, fonts } from '../theme';
 import { categories, vocabulary } from '../data/vocabulary';
 import { hiraganaData } from '../data/hiragana';
 import { katakanaData } from '../data/katakana';
 
-const LessonCard = ({ icon, title, subtitle, badge, badgeColor, progress, onPress }) => (
+const CATEGORY_ICONS = {
+  greetings:    { name: 'hand-left-outline',       color: '#E57373' },
+  counting:     { name: 'calculator-outline',       color: '#4FC3F7' },
+  days:         { name: 'calendar-outline',         color: '#81C784' },
+  colors:       { name: 'color-palette-outline',    color: '#BA68C8' },
+  food:         { name: 'restaurant-outline',       color: '#FFB74D' },
+  body:         { name: 'body-outline',             color: '#F06292' },
+  dailylife:    { name: 'home-outline',             color: '#4DB6AC' },
+  office:       { name: 'briefcase-outline',        color: '#A0793F' },
+  transport:    { name: 'car-outline',              color: '#64B5F6' },
+  health:       { name: 'medkit-outline',           color: '#E57373' },
+  shopping:     { name: 'cart-outline',             color: '#81C784' },
+  time:         { name: 'time-outline',             color: '#FFB74D' },
+  weather:      { name: 'partly-sunny-outline',     color: '#4FC3F7' },
+  quantities:   { name: 'list-outline',             color: '#BA68C8' },
+  family:       { name: 'people-outline',           color: '#F06292' },
+  emotions:     { name: 'happy-outline',            color: '#FFD54F' },
+  celebrations: { name: 'gift-outline',             color: '#E57373' },
+  restaurant:   { name: 'fast-food-outline',        color: '#FFB74D' },
+  travel:       { name: 'airplane-outline',         color: '#64B5F6' },
+};
+
+// icon = Ionicon name, or pass iconChar for a plain text character (e.g. "あ", "ア")
+const LessonCard = ({ icon, iconChar, iconColor, title, subtitle, badge, badgeColor, progress, onPress }) => (
   <TouchableOpacity style={styles.lessonCard} onPress={onPress}>
     <View style={styles.lessonIcon}>
-      <Text style={styles.lessonIconText}>{icon}</Text>
+      {iconChar
+        ? <Text style={[styles.lessonIconChar, { color: iconColor || colors.primary }]}>{iconChar}</Text>
+        : <Ionicons name={icon} size={26} color={iconColor || colors.primary} />
+      }
     </View>
     <View style={styles.lessonInfo}>
       <Text style={styles.lessonTitle}>{title}</Text>
@@ -29,13 +56,16 @@ const LessonCard = ({ icon, title, subtitle, badge, badgeColor, progress, onPres
 
 const CategoryCard = ({ category, knownCount, totalCount, onPress }) => {
   const pct = totalCount > 0 ? (knownCount / totalCount) * 100 : 0;
+  const iconDef = CATEGORY_ICONS[category.id] || { name: 'book-outline', color: colors.primary };
   return (
     <TouchableOpacity style={styles.categoryCard} onPress={onPress}>
-      <Text style={styles.categoryEmoji}>{category.emoji}</Text>
+      <View style={[styles.catIconBox, { backgroundColor: iconDef.color + '22' }]}>
+        <Ionicons name={iconDef.name} size={26} color={iconDef.color} />
+      </View>
       <Text style={styles.categoryLabel}>{category.label}</Text>
       <Text style={styles.categoryLabelJp}>{category.labelJp}</Text>
       <View style={styles.catProgressBar}>
-        <View style={[styles.catProgressFill, { width: `${pct}%` }]} />
+        <View style={[styles.catProgressFill, { width: `${pct}%`, backgroundColor: iconDef.color }]} />
       </View>
       <Text style={styles.catCount}>{knownCount}/{totalCount}</Text>
     </TouchableOpacity>
@@ -43,7 +73,7 @@ const CategoryCard = ({ category, knownCount, totalCount, onPress }) => {
 };
 
 export default function HomeScreen({ navigation }) {
-  const { direction, learnedHiragana, learnedKatakana, getKnownCount } = useApp();
+  const { direction, learnedHiragana, learnedKatakana, getKnownCount, t } = useApp();
 
   const directionLabel = direction === 'tamil-to-japanese'
     ? 'தமிழ் → 日本語'
@@ -61,9 +91,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.greeting}>வணக்கம், ஜெஃபின் 👋</Text>
-              <Text style={styles.headerTitle}>Learn Japanese</Text>
-              <Text style={styles.headerJp}>日本語を学ぼう</Text>
+              <Text style={styles.greeting}>{t.greeting}</Text>
+              <Text style={styles.headerTitle}>{t.learn_japanese}</Text>
+              <Text style={styles.headerJp}>{t.learn_japanese_jp}</Text>
             </View>
             <TouchableOpacity
               style={styles.dirBadge}
@@ -76,24 +106,27 @@ export default function HomeScreen({ navigation }) {
 
         {/* Scripts */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>எழுத்துக்கள் · Scripts</Text>
+          <Text style={styles.sectionTitle}>{t.section_scripts}</Text>
           <LessonCard
-            icon="あ" title="Hiragana" subtitle="ஹிரகானா அடிப்படை"
+            iconChar="あ" iconColor={colors.primary}
+            title="Hiragana" subtitle={t.hiragana_sub}
             badge={`${learnedHiragana.size}/${hiraganaData.length}`}
             badgeColor={colors.primary}
             progress={hiraganaProgress}
             onPress={() => navigation.navigate('HiraganaGrid')}
           />
           <LessonCard
-            icon="ア" title="Katakana" subtitle="கட்டகானா"
+            iconChar="ア" iconColor={colors.accent}
+            title="Katakana" subtitle={t.katakana_sub}
             badge={`${learnedKatakana.size}/${katakanaData.length}`}
             badgeColor={colors.accent}
             progress={katakanaProgress}
             onPress={() => navigation.navigate('KatakanaGrid')}
           />
           <LessonCard
-            icon="文" title="Grammar" subtitle="இலக்கண விதிகள்"
-            badge="18 topics"
+            icon="book-outline" iconColor="#A0793F"
+            title="Grammar" subtitle={t.grammar_sub}
+            badge={`18 ${t.grammar_topics}`}
             badgeColor="#A0793F"
             onPress={() => navigation.navigate('Grammar')}
           />
@@ -101,7 +134,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Vocabulary Categories — 2-column grid */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>வார்த்தை வகைகள்</Text>
+          <Text style={styles.sectionTitle}>{t.section_vocab}</Text>
           <View style={styles.categoryGrid}>
             {categories.map(cat => (
               <CategoryCard
@@ -181,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginRight: spacing.md,
   },
-  lessonIconText: { fontSize: fonts.sizes.xl, color: colors.primary },
+  lessonIconChar: { fontSize: fonts.sizes.xl, fontWeight: '700' },
   lessonInfo: { flex: 1 },
   lessonTitle: { fontSize: fonts.sizes.base, fontWeight: '700', color: colors.textPrimary },
   lessonSubtitle: { fontSize: fonts.sizes.sm, color: colors.textSecondary, marginTop: 2 },
@@ -192,12 +225,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 2, backgroundColor: colors.primary },
   badge: { fontSize: fonts.sizes.sm, fontWeight: '600' },
 
-  // 2-column grid
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
+  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   categoryCard: {
     backgroundColor: colors.cardBg,
     borderRadius: radius.lg,
@@ -210,13 +238,17 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  categoryEmoji: { fontSize: 28, marginBottom: 6 },
+  catIconBox: {
+    width: 48, height: 48, borderRadius: radius.md,
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 8,
+  },
   categoryLabel: { fontSize: fonts.sizes.sm, color: colors.textPrimary, fontWeight: '600', textAlign: 'center' },
   categoryLabelJp: { fontSize: fonts.sizes.xs, color: colors.textSecondary, marginTop: 2 },
   catProgressBar: {
     width: '80%', height: 4, backgroundColor: colors.border,
     borderRadius: 2, marginTop: 8, overflow: 'hidden',
   },
-  catProgressFill: { height: '100%', backgroundColor: colors.accent, borderRadius: 2 },
+  catProgressFill: { height: '100%', borderRadius: 2 },
   catCount: { fontSize: 10, color: colors.textMuted, marginTop: 4 },
 });

@@ -3,15 +3,11 @@ import {
   View, Text, ScrollView, StyleSheet,
   SafeAreaView, StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { hiraganaData } from '../data/hiragana';
 import { katakanaData } from '../data/katakana';
 import { colors, spacing, radius, fonts } from '../theme';
-
-const levelPath = [
-  { num: '①', title: 'Hiragana', kana: 'あ', done: true },
-  { num: '②', title: 'Katakana', kana: 'ア', done: true },
-];
 
 const StatCard = ({ value, label, color }) => (
   <View style={styles.statCard}>
@@ -20,11 +16,24 @@ const StatCard = ({ value, label, color }) => (
   </View>
 );
 
+const formatTime = (minutes) => {
+  if (minutes < 1) return '0m';
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+};
+
 export default function ProgressScreen() {
-  const { stats, learnedHiragana, learnedKatakana } = useApp();
+  const { stats, learnedHiragana, learnedKatakana, t } = useApp();
 
   const hiraganaPercent = Math.round((learnedHiragana.size / hiraganaData.length) * 100);
   const katakanaPercent = Math.round((learnedKatakana.size / katakanaData.length) * 100);
+
+  const levelPath = [
+    { icon: 'text-outline', title: 'Hiragana', kana: 'あ', done: true },
+    { icon: 'language-outline', title: 'Katakana', kana: 'ア', done: true },
+  ];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -33,24 +42,24 @@ export default function ProgressScreen() {
 
         {/* Page Title */}
         <View style={styles.titleRow}>
-          <Text style={styles.pageTitle}>இன்றைய புள்ளி விவரங்கள்</Text>
-          <Text style={styles.pageTitleSub}>Today's Stats</Text>
+          <Text style={styles.pageTitle}>{t.progress_title}</Text>
+          <Text style={styles.pageTitleSub}>{t.progress_sub}</Text>
         </View>
 
         {/* Stats */}
         <View style={styles.statsRow}>
-          <StatCard value={stats.cardsReviewed} label={'Cards reviewed\nகார்டுகள் பார்க்கப்பட்டன'} color={colors.primary} />
-          <StatCard value={`${stats.accuracy}%`} label={'Accuracy\nதுல்லியம்'} color={colors.accent} />
-          <StatCard value={`${stats.timeSpent}m`} label={'Time spent\nநேரம்'} color={colors.textPrimary} />
+          <StatCard value={stats.cardsReviewed} label={t.stat_cards} color={colors.primary} />
+          <StatCard value={`${stats.accuracy}%`} label={t.stat_accuracy} color={colors.accent} />
+          <StatCard value={formatTime(stats.timeSpent)} label={t.stat_time} color={colors.textPrimary} />
         </View>
 
         {/* Character Progress */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>எழுத்து முன்னேற்றம் · Character Progress</Text>
+          <Text style={styles.sectionTitle}>{t.char_progress}</Text>
 
           <View style={styles.charProgress}>
             <View style={styles.charRow}>
-              <Text style={styles.charLabel}>ஹிரகானா (Hiragana)</Text>
+              <Text style={styles.charLabel}>{t.hiragana_label}</Text>
               <Text style={styles.charCount}>{learnedHiragana.size} / {hiraganaData.length}</Text>
             </View>
             <View style={styles.progressBar}>
@@ -58,7 +67,7 @@ export default function ProgressScreen() {
             </View>
 
             <View style={[styles.charRow, { marginTop: spacing.md }]}>
-              <Text style={styles.charLabel}>கட்டகானா (Katakana)</Text>
+              <Text style={styles.charLabel}>{t.katakana_label}</Text>
               <Text style={styles.charCount}>{learnedKatakana.size} / {katakanaData.length}</Text>
             </View>
             <View style={styles.progressBar}>
@@ -69,12 +78,12 @@ export default function ProgressScreen() {
 
         {/* Level Path */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>கற்றல் பாதை · LEVEL PATH</Text>
+          <Text style={styles.sectionTitle}>{t.level_path}</Text>
 
           <View style={styles.levelGrid}>
             {levelPath.map((level, i) => (
               <View key={i} style={[styles.levelCard, level.done && styles.levelCardDone]}>
-                <Text style={[styles.levelNum, level.done && styles.levelNumDone]}>{level.num}</Text>
+                <Ionicons name={level.icon} size={20} color={level.done ? colors.primaryLight : colors.textMuted} />
                 <Text style={[styles.levelTitle, level.done && styles.levelTitleDone]}>{level.title}</Text>
                 <Text style={styles.levelKana}>{level.kana}</Text>
               </View>
@@ -135,8 +144,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', minWidth: 100,
   },
   levelCardDone: { backgroundColor: colors.darkBg, borderColor: colors.darkBg },
-  levelNum: { fontSize: fonts.sizes.xs, color: colors.textSecondary, fontWeight: '700' },
-  levelNumDone: { color: colors.primaryLight },
   levelTitle: { fontSize: fonts.sizes.sm, color: colors.textPrimary, fontWeight: '700', marginTop: 2 },
   levelTitleDone: { color: colors.textLight },
   levelKana: { fontSize: fonts.sizes.base, color: colors.textSecondary, marginTop: 2 },

@@ -4,6 +4,7 @@ import {
   SafeAreaView, ScrollView, StatusBar, PanResponder,
 } from 'react-native';
 import * as Speech from 'expo-speech';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
 import { vocabulary, categories } from '../data/vocabulary';
 import { colors, spacing, radius, fonts } from '../theme';
@@ -13,9 +14,6 @@ const getJapaneseSpeechText = (japanese) => {
   return japanese.split('/')[0].trim();
 };
 
-const SpeakerIcon = ({ color = '#fff', size = 20 }) => (
-  <Text style={{ fontSize: size, color, lineHeight: size * 1.2 }}>♪</Text>
-);
 
 export default function FlashcardScreen({ route, navigation }) {
   const { direction, addCardReview, markCard, getKnownCount, cardProgress } = useApp();
@@ -211,7 +209,7 @@ export default function FlashcardScreen({ route, navigation }) {
               <Text style={styles.thanglishFront}>{currentCard.thanglish}</Text>
             ) : null}
             <TouchableOpacity style={styles.speakerBtn} onPress={() => speakText(isTamilToJp ? 'tamil' : 'japanese')}>
-              <SpeakerIcon color={colors.primaryLight} size={22} />
+              <Ionicons name="volume-medium-outline" size={22} color={colors.primaryLight} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.flipBtn} onPress={() => setShowAnswer(true)}>
               <Text style={styles.flipBtnText}>காட்டு →</Text>
@@ -230,14 +228,16 @@ export default function FlashcardScreen({ route, navigation }) {
             <Text style={styles.cardRomaji}>{currentCard?.romaji}</Text>
             <Text style={styles.cardMeaning}>{currentCard?.meaning}</Text>
             <TouchableOpacity style={styles.speakerBtnBack} onPress={() => speakText(isTamilToJp ? 'japanese' : 'tamil')}>
-              <SpeakerIcon color={colors.primary} size={22} />
+              <Ionicons name="volume-medium-outline" size={22} color={colors.primary} />
             </TouchableOpacity>
             <View style={styles.actionRow}>
               <TouchableOpacity style={[styles.actionBtn, styles.wrongBtn]} onPress={() => handleResult(false)}>
-                <Text style={styles.wrongText}>✗  தெரியாது</Text>
+                <Ionicons name="close-circle" size={20} color="#C62828" />
+                <Text style={styles.wrongText}>தெரியாது</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.actionBtn, styles.correctBtn]} onPress={() => handleResult(true)}>
-                <Text style={styles.correctText}>✓  தெரியும்</Text>
+                <Ionicons name="checkmark-circle" size={20} color="#2E7D32" />
+                <Text style={styles.correctText}>தெரியும்</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -247,10 +247,12 @@ export default function FlashcardScreen({ route, navigation }) {
       {/* Navigation */}
       <View style={styles.navRow}>
         <TouchableOpacity style={styles.navBtn} onPress={goPrev}>
-          <Text style={styles.navBtnText}>← முந்தையது</Text>
+          <Ionicons name="chevron-back" size={18} color={colors.primary} />
+          <Text style={styles.navBtnText}>முந்தையது</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={goNext}>
-          <Text style={styles.navBtnText}>அடுத்தது →</Text>
+          <Text style={styles.navBtnText}>அடுத்தது</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
   swipeHint: { marginTop: spacing.md, fontSize: fonts.sizes.xs, color: 'rgba(255,255,255,0.25)', letterSpacing: 1 },
 
   actionRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, width: '100%' },
-  actionBtn: { flex: 1, paddingVertical: spacing.md, borderRadius: radius.lg, alignItems: 'center' },
+  actionBtn: { flex: 1, paddingVertical: spacing.md, borderRadius: radius.lg, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 },
   wrongBtn: { backgroundColor: '#FFEBEE', borderWidth: 1.5, borderColor: '#EF9A9A' },
   correctBtn: { backgroundColor: '#E8F5E9', borderWidth: 1.5, borderColor: '#A5D6A7' },
   wrongText: { color: '#C62828', fontWeight: '700', fontSize: fonts.sizes.sm },
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between',
     paddingHorizontal: spacing.base, paddingBottom: spacing.lg, paddingTop: spacing.sm,
   },
-  navBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  navBtn: { paddingVertical: spacing.sm, paddingHorizontal: spacing.md, flexDirection: 'row', alignItems: 'center', gap: 4 },
   navBtnText: { color: colors.primary, fontWeight: '600', fontSize: fonts.sizes.sm },
 
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
