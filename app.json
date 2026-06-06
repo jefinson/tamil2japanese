@@ -24,12 +24,21 @@
     },
     "android": {
       "package": "com.jefin.tamiljapanese",
-      "targetSdkVersion": 35,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a0a2e"
       }
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 35
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "ac1b8664-6263-4982-b1a2-e323aae28104"
