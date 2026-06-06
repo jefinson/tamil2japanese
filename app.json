@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Tamil2Japanese",
-    "slug": "tamil2japanese",
+    "name": "TamilJap",
+    "slug": "tamiljap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,13 +17,13 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jefin.tamil2japanese",
+      "bundleIdentifier": "com.jefin.tamiljapanese",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.jefin.tamil2japanese",
+      "package": "com.jefin.tamiljapanese",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a0a2e"
